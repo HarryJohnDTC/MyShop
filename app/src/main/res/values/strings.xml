@@ -4,4 +4,5 @@
     <string name="ajouter_au_panier">Ajouter au panier</string>
     <string name="consulter_le_panier">Consulter le panier</string>
     <string name="panier">Panier</string>
+    <string name="article_name">Article Name</string>
 </resources>
