@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/tvArticles"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Articles:"
+        android:textSize="18sp"
+        android:layout_alignParentTop="true"
+        android:layout_margin="16dp"/>
+
+    <ListView
+        android:id="@+id/lvArticles"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/tvArticles"
+        android:layout_margin="16dp"/>
+    <Button
+        android:id="@+id/btnViewCart"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/consulter_le_panier"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_margin="16dp"/>
+
+</RelativeLayout>

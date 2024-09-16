@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">MyShopSqlite</string>
+    <string name="article_image">image de l\'article</string>
+    <string name="ajouter_au_panier">Ajouter au panier</string>
+    <string name="consulter_le_panier">Consulter le panier</string>
+    <string name="panier">Panier</string>
+</resources>
