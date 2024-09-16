@@ -5,4 +5,7 @@
     <string name="consulter_le_panier">Consulter le panier</string>
     <string name="panier">Panier</string>
     <string name="article_name">Article Name</string>
+    <string name="valider_la_commande">Valider la commande</string>
+    <string name="annuler_la_commande">Annuler la commande</string>
+    <string name="mon_panier">Mon Panier</string>
 </resources>
