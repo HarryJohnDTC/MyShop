@@ -1,8 +1,10 @@
 package com.harena.myshopsqlite;
 
 import android.content.ContentValues;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.ListView;
@@ -91,10 +93,69 @@ public class CartActivity extends AppCompatActivity {
     }
 
     private void validateOrder() {
-        // You might want to add code to save the order details in the database here
-        // For now, just showing a Toast
-        Toast.makeText(this, "Commande validée", Toast.LENGTH_SHORT).show();
+        // Récupérer les détails de la commande à partir du panier
+        StringBuilder orderDetails = new StringBuilder();
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        Cursor cursor = db.query(DatabaseHelper.TABLE_CART, null, null, null, null, null, null);
+
+        double totalPrice = 0.0;
+        while (cursor.moveToNext()) {
+            int articleId = cursor.getInt(cursor.getColumnIndex(DatabaseHelper.COLUMN_CART_ARTICLE_ID));
+            int quantity = cursor.getInt(cursor.getColumnIndex(DatabaseHelper.COLUMN_CART_QUANTITY));
+            double total = cursor.getDouble(cursor.getColumnIndex(DatabaseHelper.COLUMN_CART_TOTAL));
+            totalPrice += total;
+
+            // Récupérer les informations de l'article
+            Cursor articleCursor = db.query(DatabaseHelper.TABLE_ARTICLE,
+                    new String[]{DatabaseHelper.COLUMN_ARTICLE_NAME, DatabaseHelper.COLUMN_ARTICLE_PRICE},
+                    DatabaseHelper.COLUMN_ARTICLE_ID + " = ?",
+                    new String[]{String.valueOf(articleId)},
+                    null, null, null);
+
+            if (articleCursor.moveToFirst()) {
+                String name = articleCursor.getString(articleCursor.getColumnIndex(DatabaseHelper.COLUMN_ARTICLE_NAME));
+                double price = articleCursor.getDouble(articleCursor.getColumnIndex(DatabaseHelper.COLUMN_ARTICLE_PRICE));
+
+                // Ajouter les détails de la commande dans une String
+                orderDetails.append("Article: ").append(name)
+                        .append(", Quantité: ").append(quantity)
+                        .append(", Prix unitaire: ").append(price)
+                        .append("€, Total: ").append(total).append("€\n");
+            }
+            articleCursor.close();
+        }
+        cursor.close();
+        db.close();
+
+        // Ajouter le prix total à la fin des détails de la commande
+        orderDetails.append("\nPrix total de la commande: ").append(totalPrice).append("€");
+
+        // Afficher le popup de confirmation
+        new AlertDialog.Builder(this)
+                .setTitle("Commande validée")
+                .setMessage("Votre commande a été validée. Détails:\n\n" + orderDetails.toString())
+                .setPositiveButton("OK", (dialog, which) -> {
+                    // Envoyer un email
+                    sendOrderConfirmationEmail(orderDetails.toString());
+                })
+                .setNegativeButton("Annuler", null)
+                .show();
     }
+
+    private void sendOrderConfirmationEmail(String orderDetails) {
+        // Préparer l'intent pour envoyer un email
+        Intent emailIntent = new Intent(Intent.ACTION_SENDTO);
+        emailIntent.setData(Uri.parse("mailto:")); // Only email apps should handle this
+        emailIntent.putExtra(Intent.EXTRA_SUBJECT, "Confirmation de votre commande");
+        emailIntent.putExtra(Intent.EXTRA_TEXT, "Merci d'avoir passé commande. Voici les détails:\n\n" + orderDetails);
+
+        try {
+            startActivity(Intent.createChooser(emailIntent, "Envoyer l'email de confirmation"));
+        } catch (android.content.ActivityNotFoundException ex) {
+            Toast.makeText(this, "Aucune application de messagerie installée.", Toast.LENGTH_SHORT).show();
+        }
+    }
+
 
     private void cancelOrder() {
         // Créer une boîte de dialogue de confirmation

@@ -37,9 +37,6 @@ public class MainActivity extends AppCompatActivity {
             // Ajouter des articles pour test
             addTestArticles();
 
-            // Afficher les articles dans la ListView
-            displayArticles();
-
             // Configurer le bouton pour ouvrir l'activité Cart
             btnViewCart.setOnClickListener(v -> {
                 Intent intent = new Intent(MainActivity.this, CartActivity.class);
@@ -51,9 +48,16 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Recharger les articles quand l'activité reprend
+        displayArticles();
+    }
+
     private void addTestArticles() {
         SQLiteDatabase db = dbHelper.getWritableDatabase();
-        db.execSQL("DELETE FROM " + DatabaseHelper.TABLE_ARTICLE); // Clean up previous test data
+        db.execSQL("DELETE FROM " + DatabaseHelper.TABLE_ARTICLE); // Supprimer les données de test précédentes
         db.execSQL("INSERT INTO " + DatabaseHelper.TABLE_ARTICLE + " (name, price, stock, photo) VALUES ('Appareil photo', 700.0, 50, 'photo_camera')");
         db.execSQL("INSERT INTO " + DatabaseHelper.TABLE_ARTICLE + " (name, price, stock, photo) VALUES ('Smartphone', 400.0, 100, 'smartphone')");
         db.execSQL("INSERT INTO " + DatabaseHelper.TABLE_ARTICLE + " (name, price, stock, photo) VALUES ('Ordinateur portable', 500.0, 70, 'laptop')");
@@ -75,7 +79,7 @@ public class MainActivity extends AppCompatActivity {
         }
         cursor.close();
 
-        // Utiliser l'ArticleAdapter pour afficher les articles
+        // Utiliser l'ArticleAdapter pour afficher les articles dans la ListView
         ArticleAdapter adapter = new ArticleAdapter(this, articles, dbHelper);
         lvArticles.setAdapter(adapter);
     }
@@ -89,3 +93,4 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "DatabaseHelper closed");
     }
 }
+
