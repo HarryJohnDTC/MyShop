@@ -89,6 +89,8 @@ public class ArticleAdapter extends ArrayAdapter<String[]> {
         return articleId;
     }
 
+
+
     // Méthode pour ajouter au panier avec l'ID de l'utilisateur
     private void addToCart(String articleName, int articleId, int quantity, long userId) {
         SQLiteDatabase db = dbHelper.getWritableDatabase();

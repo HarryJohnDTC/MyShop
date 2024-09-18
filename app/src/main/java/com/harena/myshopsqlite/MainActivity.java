@@ -37,8 +37,8 @@ public class MainActivity extends AppCompatActivity {
             dbHelper = new DatabaseHelper(this);
             Log.d(TAG, "DatabaseHelper initialized");
 
-            // Ajouter des articles pour test
-            addTestArticles();
+            // Initialiser les articles
+            initializeArticles();
 
             // Configurer le bouton pour ouvrir l'activité Cart
             btnViewCart.setOnClickListener(v -> {
@@ -54,25 +54,12 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+
     @Override
     protected void onResume() {
         super.onResume();
         // Recharger les articles quand l'activité reprend
         displayArticles();
-    }
-
-    private void addTestArticles() {
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
-        db.execSQL("DELETE FROM " + DatabaseHelper.TABLE_ARTICLE); // Clean up previous test data
-        db.execSQL("DELETE FROM " + DatabaseHelper.TABLE_CART); // Clean up previous test data
-
-        // Ajouter des articles pour test
-        db.execSQL("INSERT INTO " + DatabaseHelper.TABLE_ARTICLE + " (name, price, stock, photo) VALUES ('Appareil photo', 700.0, 50, 'photo_camera')");
-        db.execSQL("INSERT INTO " + DatabaseHelper.TABLE_ARTICLE + " (name, price, stock, photo) VALUES ('Smartphone', 400.0, 100, 'smartphone')");
-        db.execSQL("INSERT INTO " + DatabaseHelper.TABLE_ARTICLE + " (name, price, stock, photo) VALUES ('Ordinateur portable', 500.0, 70, 'laptop')");
-
-        db.close();
-        Log.d(TAG, "Test articles added");
     }
 
     private void displayArticles() {
@@ -81,6 +68,7 @@ public class MainActivity extends AppCompatActivity {
 
         ArrayList<String[]> articles = new ArrayList<>();
         while (cursor.moveToNext()) {
+            int id = cursor.getInt(cursor.getColumnIndex(DatabaseHelper.COLUMN_ARTICLE_ID));
             String name = cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_ARTICLE_NAME));
             double price = cursor.getDouble(cursor.getColumnIndex(DatabaseHelper.COLUMN_ARTICLE_PRICE));
             int stock = cursor.getInt(cursor.getColumnIndex(DatabaseHelper.COLUMN_ARTICLE_STOCK));
@@ -107,6 +95,19 @@ public class MainActivity extends AppCompatActivity {
         finish(); // Ferme l'activité actuelle
         Toast.makeText(this, "Déconnecté avec succès", Toast.LENGTH_SHORT).show();
     }
+    private void initializeArticles() {
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        Cursor cursor = db.query(DatabaseHelper.TABLE_ARTICLE, null, null, null, null, null, null);
+
+        if (cursor.getCount() == 0) { // Vérifiez si la table est vide
+            dbHelper.addArticle("Appareil photo", 700.0, 50, "photo_camera");
+            dbHelper.addArticle("Smartphone", 400.0, 100, "smartphone");
+            dbHelper.addArticle("Ordinateur portable", 500.0, 70, "laptop");
+            Log.d(TAG, "Test articles added");
+        }
+        cursor.close();
+    }
+
 
     @Override
     protected void onDestroy() {

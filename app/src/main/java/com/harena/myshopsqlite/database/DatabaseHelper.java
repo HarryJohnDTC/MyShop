@@ -10,7 +10,7 @@ import android.util.Log;
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "myshop.db";
-    private static final int DATABASE_VERSION = 6; // Increment the version
+    private static final int DATABASE_VERSION = 7; // Increment the version
 
     // Table names
     public static final String TABLE_ARTICLE = "article";
@@ -136,16 +136,43 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return db.insert(TABLE_USER, null, values);
     }
 
-    // Method to add an item to the cart for a specific user
     public long addToCart(int articleId, int quantity, double total, long userId) {
         SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put(COLUMN_CART_ARTICLE_ID, articleId);
-        values.put(COLUMN_CART_QUANTITY, quantity);
-        values.put(COLUMN_CART_TOTAL, total);
-        values.put(COLUMN_CART_USER_ID, userId); // Associate the cart item with the user
-        return db.insert(TABLE_CART, null, values);
+
+        // Vérifier le stock disponible
+        Cursor cursor = db.query(TABLE_ARTICLE,
+                new String[]{COLUMN_ARTICLE_STOCK},
+                COLUMN_ARTICLE_ID + " = ?",
+                new String[]{String.valueOf(articleId)},
+                null, null, null);
+
+        if (cursor.moveToFirst()) {
+            int stock = cursor.getInt(cursor.getColumnIndex(COLUMN_ARTICLE_STOCK));
+            if (stock >= quantity) {
+                // Ajouter l'article au panier
+                ContentValues values = new ContentValues();
+                values.put(COLUMN_CART_ARTICLE_ID, articleId);
+                values.put(COLUMN_CART_QUANTITY, quantity);
+                values.put(COLUMN_CART_TOTAL, total);
+                values.put(COLUMN_CART_USER_ID, userId); // Associer l'article au panier de l'utilisateur
+                long rowId = db.insert(TABLE_CART, null, values);
+
+                // Mettre à jour le stock
+                ContentValues stockValues = new ContentValues();
+                stockValues.put(COLUMN_ARTICLE_STOCK, stock - quantity);
+                db.update(TABLE_ARTICLE, stockValues, COLUMN_ARTICLE_ID + " = ?", new String[]{String.valueOf(articleId)});
+
+                cursor.close();
+                return rowId; // Succès, retourne l'ID de la ligne insérée
+            } else {
+                cursor.close();
+                return -1; // Pas assez de stock
+            }
+        }
+        cursor.close();
+        return -1; // Article non trouvé
     }
+
 
     // Method to create a new order (commande) for a user
     public long addCommande(long userId, String date, double total) {
@@ -187,6 +214,19 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
         cursor.close();
         return userId;
+    }
+
+
+    public void addArticle(String name, double price, int stock, String photo) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_ARTICLE_NAME, name);
+        values.put(COLUMN_ARTICLE_PRICE, price);
+        values.put(COLUMN_ARTICLE_STOCK, stock);
+        values.put(COLUMN_ARTICLE_PHOTO, photo);
+
+        db.insert(TABLE_ARTICLE, null, values);
+        db.close();
     }
 
 }
