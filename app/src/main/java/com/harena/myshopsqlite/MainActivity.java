@@ -2,12 +2,14 @@ package com.harena.myshopsqlite;
 
 import androidx.appcompat.app.AppCompatActivity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.harena.myshopsqlite.database.DatabaseHelper;
 
@@ -18,17 +20,18 @@ public class MainActivity extends AppCompatActivity {
     private DatabaseHelper dbHelper;
     private static final String TAG = "MainActivity";
     private ListView lvArticles;
-    private Button btnViewCart;
+    private Button btnViewCart, btnLogout; // Bouton de déconnexion
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.activity_main);
 
         // Initialiser les vues
         lvArticles = findViewById(R.id.lvArticles);
         btnViewCart = findViewById(R.id.btnViewCart);
+        btnLogout = findViewById(R.id.btnLogout); // Bouton "Déconnexion"
+
         try {
             // Initialiser le DatabaseHelper
             dbHelper = new DatabaseHelper(this);
@@ -42,6 +45,9 @@ public class MainActivity extends AppCompatActivity {
                 Intent intent = new Intent(MainActivity.this, CartActivity.class);
                 startActivity(intent);
             });
+
+            // Configurer le bouton "Déconnexion"
+            btnLogout.setOnClickListener(v -> logoutUser());
 
         } catch (Exception e) {
             Log.e(TAG, "Error initializing database or displaying articles", e);
@@ -60,21 +66,14 @@ public class MainActivity extends AppCompatActivity {
         db.execSQL("DELETE FROM " + DatabaseHelper.TABLE_ARTICLE); // Clean up previous test data
         db.execSQL("DELETE FROM " + DatabaseHelper.TABLE_CART); // Clean up previous test data
 
-        //db.execSQL("DELETE FROM " + DatabaseHelper.TABLE_USER); // Clean up previous test user
-
         // Ajouter des articles pour test
         db.execSQL("INSERT INTO " + DatabaseHelper.TABLE_ARTICLE + " (name, price, stock, photo) VALUES ('Appareil photo', 700.0, 50, 'photo_camera')");
         db.execSQL("INSERT INTO " + DatabaseHelper.TABLE_ARTICLE + " (name, price, stock, photo) VALUES ('Smartphone', 400.0, 100, 'smartphone')");
         db.execSQL("INSERT INTO " + DatabaseHelper.TABLE_ARTICLE + " (name, price, stock, photo) VALUES ('Ordinateur portable', 500.0, 70, 'laptop')");
 
-        // Ne pas ajouter d'utilisateur de test
-        // db.execSQL("INSERT INTO " + DatabaseHelper.TABLE_USER + " (email, password) VALUES ('test@example.com', 'password123')"); // Add a test user
-
         db.close();
         Log.d(TAG, "Test articles added");
     }
-
-
 
     private void displayArticles() {
         SQLiteDatabase db = dbHelper.getReadableDatabase();
@@ -95,6 +94,20 @@ public class MainActivity extends AppCompatActivity {
         lvArticles.setAdapter(adapter);
     }
 
+    // Méthode pour gérer la déconnexion
+    private void logoutUser() {
+        SharedPreferences prefs = getSharedPreferences("MyPrefs", MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.remove("user_id"); // Efface l'ID utilisateur pour forcer une reconnexion
+        editor.apply();
+
+        // Redirige vers l'activité de connexion
+        Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+        startActivity(intent);
+        finish(); // Ferme l'activité actuelle
+        Toast.makeText(this, "Déconnecté avec succès", Toast.LENGTH_SHORT).show();
+    }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -104,4 +117,3 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "DatabaseHelper closed");
     }
 }
-

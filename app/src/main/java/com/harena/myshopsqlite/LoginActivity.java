@@ -1,8 +1,7 @@
 package com.harena.myshopsqlite;
 
 import android.content.Intent;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.widget.Button;
@@ -35,6 +34,20 @@ public class LoginActivity extends AppCompatActivity {
         btnRegister.setOnClickListener(v -> registerUser());
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        // Vérifiez si un utilisateur est déjà connecté
+        long userId = getUserId();
+        if (userId != -1) {
+            // Si l'utilisateur est connecté, redirigez vers MainActivity
+            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+            startActivity(intent);
+            finish(); // Terminez LoginActivity pour éviter que l'utilisateur puisse y revenir
+        }
+    }
+
     private void loginUser() {
         String email = etEmail.getText().toString();
         String password = etPassword.getText().toString();
@@ -44,19 +57,35 @@ public class LoginActivity extends AppCompatActivity {
             return;
         }
 
-        SQLiteDatabase db = dbHelper.getReadableDatabase();
-        Cursor cursor = db.query(DatabaseHelper.TABLE_USER, null,
-                DatabaseHelper.COLUMN_USER_EMAIL + " = ? AND " + DatabaseHelper.COLUMN_USER_PASSWORD + " = ?",
-                new String[]{email, password}, null, null, null);
+        long userId = dbHelper.getUserIdByEmailAndPassword(email, password);
 
-        if (cursor.moveToFirst()) {
+        if (userId != -1) {
+            saveUserId(userId); // Stocker l'ID utilisateur
             Intent intent = new Intent(LoginActivity.this, MainActivity.class);
             startActivity(intent);
             finish();
         } else {
             Toast.makeText(this, "Invalid email or password", Toast.LENGTH_SHORT).show();
         }
-        cursor.close();
+    }
+
+    private void saveUserId(long userId) {
+        // Obtenez l'instance de SharedPreferences
+        SharedPreferences prefs = getSharedPreferences("MyPrefs", MODE_PRIVATE);
+
+        // Créez un éditeur pour les SharedPreferences
+        SharedPreferences.Editor editor = prefs.edit();
+
+        // Stockez l'ID utilisateur
+        editor.putLong("user_id", userId);
+
+        // Appliquez les changements
+        editor.apply();
+    }
+
+    private long getUserId() {
+        SharedPreferences prefs = getSharedPreferences("MyPrefs", MODE_PRIVATE);
+        return prefs.getLong("user_id", -1); // -1 est la valeur par défaut si l'ID utilisateur n'est pas trouvé
     }
 
     private void registerUser() {

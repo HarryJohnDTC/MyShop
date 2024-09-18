@@ -2,6 +2,7 @@ package com.harena.myshopsqlite.database;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
@@ -170,4 +171,22 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(COLUMN_COMMANDE_LINE_TOTAL, total);
         return db.insert(TABLE_COMMANDE_LINE, null, values);
     }
+
+    // Méthode pour récupérer l'ID utilisateur en fonction de l'email et du mot de passe
+    public long getUserIdByEmailAndPassword(String email, String password) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(TABLE_USER,
+                new String[]{COLUMN_USER_ID},
+                COLUMN_USER_EMAIL + " = ? AND " + COLUMN_USER_PASSWORD + " = ?",
+                new String[]{email, password},
+                null, null, null);
+
+        long userId = -1;
+        if (cursor.moveToFirst()) {
+            userId = cursor.getLong(cursor.getColumnIndex(COLUMN_USER_ID));
+        }
+        cursor.close();
+        return userId;
+    }
+
 }

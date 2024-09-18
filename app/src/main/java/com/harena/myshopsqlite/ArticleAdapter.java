@@ -2,6 +2,7 @@ package com.harena.myshopsqlite;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.view.LayoutInflater;
@@ -141,9 +142,11 @@ public class ArticleAdapter extends ArrayAdapter<String[]> {
     }
 
     // Simuler la récupération de l'ID de l'utilisateur connecté
+// Méthode pour récupérer l'ID de l'utilisateur connecté
     private long getUserId() {
-        // Logique pour récupérer l'ID de l'utilisateur depuis les préférences ou la base de données
-        // Exemple temporaire, à remplacer par une vraie implémentation
-        return 1; // ID utilisateur factice
+        SharedPreferences prefs = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+        return prefs.getLong("user_id", -1); // -1 est la valeur par défaut si l'ID utilisateur n'est pas trouvé
     }
+
+
 }
