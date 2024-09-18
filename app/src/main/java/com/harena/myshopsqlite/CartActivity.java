@@ -135,8 +135,7 @@ public class CartActivity extends AppCompatActivity {
                 .setTitle("Commande validée")
                 .setMessage("Votre commande a été validée. Détails:\n\n" + orderDetails.toString())
                 .setPositiveButton("OK", (dialog, which) -> {
-                    // Envoyer un email
-                    sendOrderConfirmationEmail(orderDetails.toString());
+                    finish();
                 })
                 .setNegativeButton("Annuler", null)
                 .show();

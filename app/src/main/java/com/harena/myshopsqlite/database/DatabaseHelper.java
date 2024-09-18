@@ -54,7 +54,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         db.execSQL(TABLE_CREATE_ARTICLE);
         db.execSQL(TABLE_CREATE_CART);
+        db.execSQL(TABLE_CREATE_USER);
     }
+
+
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
@@ -67,4 +70,20 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         // Create new tables
         onCreate(db);
     }
+
+    // Table names
+    public static final String TABLE_USER = "user";
+
+    // User Table Columns
+    public static final String COLUMN_USER_ID = "_id";
+    public static final String COLUMN_USER_EMAIL = "email";
+    public static final String COLUMN_USER_PASSWORD = "password";
+
+    // Create table SQL statements
+    private static final String TABLE_CREATE_USER =
+            "CREATE TABLE " + TABLE_USER + " (" +
+                    COLUMN_USER_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                    COLUMN_USER_EMAIL + " TEXT, " +
+                    COLUMN_USER_PASSWORD + " TEXT" +
+                    ");";
 }

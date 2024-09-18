@@ -23,12 +23,12 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
 
         // Initialiser les vues
         lvArticles = findViewById(R.id.lvArticles);
         btnViewCart = findViewById(R.id.btnViewCart);
-
         try {
             // Initialiser le DatabaseHelper
             dbHelper = new DatabaseHelper(this);
@@ -55,15 +55,22 @@ public class MainActivity extends AppCompatActivity {
         displayArticles();
     }
 
+
+
+
+
     private void addTestArticles() {
         SQLiteDatabase db = dbHelper.getWritableDatabase();
-        db.execSQL("DELETE FROM " + DatabaseHelper.TABLE_ARTICLE); // Supprimer les données de test précédentes
+        db.execSQL("DELETE FROM " + DatabaseHelper.TABLE_ARTICLE); // Clean up previous test data
+        db.execSQL("DELETE FROM " + DatabaseHelper.TABLE_USER); // Clean up previous test user
         db.execSQL("INSERT INTO " + DatabaseHelper.TABLE_ARTICLE + " (name, price, stock, photo) VALUES ('Appareil photo', 700.0, 50, 'photo_camera')");
         db.execSQL("INSERT INTO " + DatabaseHelper.TABLE_ARTICLE + " (name, price, stock, photo) VALUES ('Smartphone', 400.0, 100, 'smartphone')");
         db.execSQL("INSERT INTO " + DatabaseHelper.TABLE_ARTICLE + " (name, price, stock, photo) VALUES ('Ordinateur portable', 500.0, 70, 'laptop')");
+        db.execSQL("INSERT INTO " + DatabaseHelper.TABLE_USER + " (email, password) VALUES ('test@example.com', 'password123')"); // Add a test user
         db.close();
-        Log.d(TAG, "Test articles added");
+        Log.d(TAG, "Test articles and user added");
     }
+
 
     private void displayArticles() {
         SQLiteDatabase db = dbHelper.getReadableDatabase();

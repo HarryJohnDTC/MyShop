@@ -8,4 +8,7 @@
     <string name="valider_la_commande">Valider la commande</string>
     <string name="annuler_la_commande">Annuler la commande</string>
     <string name="mon_panier">Mon Panier</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="login">Login</string>
 </resources>
