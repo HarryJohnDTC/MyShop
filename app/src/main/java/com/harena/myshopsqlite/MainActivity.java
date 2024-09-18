@@ -55,21 +55,25 @@ public class MainActivity extends AppCompatActivity {
         displayArticles();
     }
 
-
-
-
-
     private void addTestArticles() {
         SQLiteDatabase db = dbHelper.getWritableDatabase();
         db.execSQL("DELETE FROM " + DatabaseHelper.TABLE_ARTICLE); // Clean up previous test data
-        db.execSQL("DELETE FROM " + DatabaseHelper.TABLE_USER); // Clean up previous test user
+        db.execSQL("DELETE FROM " + DatabaseHelper.TABLE_CART); // Clean up previous test data
+
+        //db.execSQL("DELETE FROM " + DatabaseHelper.TABLE_USER); // Clean up previous test user
+
+        // Ajouter des articles pour test
         db.execSQL("INSERT INTO " + DatabaseHelper.TABLE_ARTICLE + " (name, price, stock, photo) VALUES ('Appareil photo', 700.0, 50, 'photo_camera')");
         db.execSQL("INSERT INTO " + DatabaseHelper.TABLE_ARTICLE + " (name, price, stock, photo) VALUES ('Smartphone', 400.0, 100, 'smartphone')");
         db.execSQL("INSERT INTO " + DatabaseHelper.TABLE_ARTICLE + " (name, price, stock, photo) VALUES ('Ordinateur portable', 500.0, 70, 'laptop')");
-        db.execSQL("INSERT INTO " + DatabaseHelper.TABLE_USER + " (email, password) VALUES ('test@example.com', 'password123')"); // Add a test user
+
+        // Ne pas ajouter d'utilisateur de test
+        // db.execSQL("INSERT INTO " + DatabaseHelper.TABLE_USER + " (email, password) VALUES ('test@example.com', 'password123')"); // Add a test user
+
         db.close();
-        Log.d(TAG, "Test articles and user added");
+        Log.d(TAG, "Test articles added");
     }
+
 
 
     private void displayArticles() {

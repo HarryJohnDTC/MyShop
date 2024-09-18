@@ -56,16 +56,22 @@ public class ArticleAdapter extends ArrayAdapter<String[]> {
             ivPhoto.setImageResource(R.drawable.default_image);
         }
 
+        // Gérer l'ajout au panier avec l'ID de l'utilisateur
         btnAddToCart.setOnClickListener(v -> {
             int articleId = getArticleId(article[0]);
             int quantity = 1; // Quantité par défaut
-            addToCart(article[0], articleId, quantity); // Passez le nom de l'article
+            long userId = getUserId(); // Récupérer l'ID de l'utilisateur connecté
+            if (userId != -1) {
+                addToCart(article[0], articleId, quantity, userId);
+            } else {
+                Toast.makeText(context, "Veuillez vous connecter", Toast.LENGTH_SHORT).show();
+            }
         });
 
         return convertView;
     }
 
-
+    // Récupérer l'ID de l'article à partir de son nom
     private int getArticleId(String articleName) {
         SQLiteDatabase db = dbHelper.getReadableDatabase();
         Cursor cursor = db.query(DatabaseHelper.TABLE_ARTICLE,
@@ -82,10 +88,11 @@ public class ArticleAdapter extends ArrayAdapter<String[]> {
         return articleId;
     }
 
-    private void addToCart(String articleName, int articleId, int quantity) {
+    // Méthode pour ajouter au panier avec l'ID de l'utilisateur
+    private void addToCart(String articleName, int articleId, int quantity, long userId) {
         SQLiteDatabase db = dbHelper.getWritableDatabase();
 
-        // Get article details
+        // Récupérer les détails de l'article
         Cursor cursor = db.query(DatabaseHelper.TABLE_ARTICLE,
                 new String[]{DatabaseHelper.COLUMN_ARTICLE_PRICE, DatabaseHelper.COLUMN_ARTICLE_STOCK},
                 DatabaseHelper.COLUMN_ARTICLE_ID + " = ?",
@@ -99,21 +106,22 @@ public class ArticleAdapter extends ArrayAdapter<String[]> {
             if (stock >= quantity) {
                 double total = price * quantity;
 
-                // Insert or update cart item
+                // Insérer ou mettre à jour l'article dans le panier
                 ContentValues values = new ContentValues();
                 values.put(DatabaseHelper.COLUMN_CART_ARTICLE_ID, articleId);
+                values.put(DatabaseHelper.COLUMN_CART_USER_ID, userId); // Associer l'utilisateur
                 values.put(DatabaseHelper.COLUMN_CART_QUANTITY, quantity);
                 values.put(DatabaseHelper.COLUMN_CART_TOTAL, total);
 
                 db.insertWithOnConflict(DatabaseHelper.TABLE_CART, null, values, SQLiteDatabase.CONFLICT_REPLACE);
 
-                // Update stock
+                // Mettre à jour le stock de l'article
                 values.clear();
                 values.put(DatabaseHelper.COLUMN_ARTICLE_STOCK, stock - quantity);
                 db.update(DatabaseHelper.TABLE_ARTICLE, values,
                         DatabaseHelper.COLUMN_ARTICLE_ID + " = ?", new String[]{String.valueOf(articleId)});
 
-                // Mise à jour locale des articles
+                // Mise à jour locale des articles pour refléter le stock réduit
                 for (int i = 0; i < articles.size(); i++) {
                     if (articles.get(i)[0].equals(articleName)) {
                         articles.get(i)[2] = String.valueOf(stock - quantity);
@@ -132,4 +140,10 @@ public class ArticleAdapter extends ArrayAdapter<String[]> {
         cursor.close();
     }
 
+    // Simuler la récupération de l'ID de l'utilisateur connecté
+    private long getUserId() {
+        // Logique pour récupérer l'ID de l'utilisateur depuis les préférences ou la base de données
+        // Exemple temporaire, à remplacer par une vraie implémentation
+        return 1; // ID utilisateur factice
+    }
 }

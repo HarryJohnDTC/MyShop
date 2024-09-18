@@ -15,7 +15,10 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.harena.myshopsqlite.database.DatabaseHelper;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;
 
 public class CartActivity extends AppCompatActivity {
 
@@ -23,6 +26,9 @@ public class CartActivity extends AppCompatActivity {
     private ListView lvCartItems;
     private Button btnValidateOrder;
     private Button btnCancelOrder;
+    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+    String currentDate = sdf.format(new Date());
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,19 +99,37 @@ public class CartActivity extends AppCompatActivity {
     }
 
     private void validateOrder() {
-        // Récupérer les détails de la commande à partir du panier
+        // Retrieve cart details
         StringBuilder orderDetails = new StringBuilder();
         SQLiteDatabase db = dbHelper.getReadableDatabase();
         Cursor cursor = db.query(DatabaseHelper.TABLE_CART, null, null, null, null, null, null);
 
-        double totalPrice = 0.0;
+        final double[] totalPriceHolder = {0.0}; // Holder for totalPrice
+        long userId = getCurrentUserId(); // Get the current logged-in user ID
+
+        // Calculate the total price before creating the order
         while (cursor.moveToNext()) {
             int articleId = cursor.getInt(cursor.getColumnIndex(DatabaseHelper.COLUMN_CART_ARTICLE_ID));
             int quantity = cursor.getInt(cursor.getColumnIndex(DatabaseHelper.COLUMN_CART_QUANTITY));
             double total = cursor.getDouble(cursor.getColumnIndex(DatabaseHelper.COLUMN_CART_TOTAL));
-            totalPrice += total;
+            totalPriceHolder[0] += total;
+        }
+        cursor.moveToFirst(); // Move cursor back to start to retrieve details again
 
-            // Récupérer les informations de l'article
+        long commandeId = -1;
+        if (cursor.getCount() > 0) {
+            // Create the order (commande) with the total price
+            commandeId = dbHelper.addCommande(userId, currentDate, totalPriceHolder[0]);
+        }
+
+        // Fetch details for the order lines
+        cursor = db.query(DatabaseHelper.TABLE_CART, null, null, null, null, null, null);
+        while (cursor.moveToNext()) {
+            int articleId = cursor.getInt(cursor.getColumnIndex(DatabaseHelper.COLUMN_CART_ARTICLE_ID));
+            int quantity = cursor.getInt(cursor.getColumnIndex(DatabaseHelper.COLUMN_CART_QUANTITY));
+            double total = cursor.getDouble(cursor.getColumnIndex(DatabaseHelper.COLUMN_CART_TOTAL));
+
+            // Retrieve article info
             Cursor articleCursor = db.query(DatabaseHelper.TABLE_ARTICLE,
                     new String[]{DatabaseHelper.COLUMN_ARTICLE_NAME, DatabaseHelper.COLUMN_ARTICLE_PRICE},
                     DatabaseHelper.COLUMN_ARTICLE_ID + " = ?",
@@ -116,32 +140,50 @@ public class CartActivity extends AppCompatActivity {
                 String name = articleCursor.getString(articleCursor.getColumnIndex(DatabaseHelper.COLUMN_ARTICLE_NAME));
                 double price = articleCursor.getDouble(articleCursor.getColumnIndex(DatabaseHelper.COLUMN_ARTICLE_PRICE));
 
-                // Ajouter les détails de la commande dans une String
+                // Add order details to a String
                 orderDetails.append("Article: ").append(name)
                         .append(", Quantité: ").append(quantity)
                         .append(", Prix unitaire: ").append(price)
                         .append("€, Total: ").append(total).append("€\n");
+
+                // Add the order line to the database
+                dbHelper.addCommandeLine(commandeId, articleId, quantity, total);
             }
             articleCursor.close();
         }
         cursor.close();
-        db.close();
 
-        // Ajouter le prix total à la fin des détails de la commande
-        orderDetails.append("\nPrix total de la commande: ").append(totalPrice).append("€");
+        // Add the total price to the end of the order details
+        final double totalPrice = totalPriceHolder[0];
+        orderDetails.append("\nTotal de la commande: ").append(totalPrice).append("€");
 
-        // Afficher le popup de confirmation
+        // Show confirmation dialog
         new AlertDialog.Builder(this)
                 .setTitle("Commande validée")
                 .setMessage("Votre commande a été validée. Détails:\n\n" + orderDetails.toString())
                 .setPositiveButton("OK", (dialog, which) -> {
+                    // Clear the cart after order is validated
+                    SQLiteDatabase writableDb = dbHelper.getWritableDatabase();
+                    writableDb.delete(DatabaseHelper.TABLE_CART, null, null);
+                    writableDb.close();
+
+                    Toast.makeText(CartActivity.this, "Commande validée", Toast.LENGTH_SHORT).show();
                     finish();
                 })
                 .setNegativeButton("Annuler", null)
                 .show();
     }
 
-    private void sendOrderConfirmationEmail(String orderDetails) {
+
+
+    // Dummy method to simulate getting the current user's ID
+    private long getCurrentUserId() {
+        // Return the logged-in user ID (you'll need to replace this with actual login logic)
+        return 1;
+    }
+
+
+    /*private void sendOrderConfirmationEmail(String orderDetails) {
         // Préparer l'intent pour envoyer un email
         Intent emailIntent = new Intent(Intent.ACTION_SENDTO);
         emailIntent.setData(Uri.parse("mailto:")); // Only email apps should handle this
@@ -153,7 +195,7 @@ public class CartActivity extends AppCompatActivity {
         } catch (android.content.ActivityNotFoundException ex) {
             Toast.makeText(this, "Aucune application de messagerie installée.", Toast.LENGTH_SHORT).show();
         }
-    }
+    }*/
 
 
     private void cancelOrder() {
