@@ -1,5 +1,6 @@
 package com.harena.myshopsqlite.database;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
@@ -86,4 +87,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     COLUMN_USER_EMAIL + " TEXT, " +
                     COLUMN_USER_PASSWORD + " TEXT" +
                     ");";
+    // Method to add a new user
+    public long addUser(String email, String password) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_USER_EMAIL, email);
+        values.put(COLUMN_USER_PASSWORD, password);
+        return db.insert(TABLE_USER, null, values);
+    }
+
 }
