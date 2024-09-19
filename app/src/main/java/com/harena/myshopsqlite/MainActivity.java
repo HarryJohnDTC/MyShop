@@ -86,15 +86,20 @@ public class MainActivity extends AppCompatActivity {
     private void logoutUser() {
         SharedPreferences prefs = getSharedPreferences("MyPrefs", MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
-        editor.remove("user_id"); // Efface l'ID utilisateur pour forcer une reconnexion
+
+        // Définir l'ID utilisateur sur -1 pour signifier qu'il n'est plus connecté
+        editor.putLong("user_id", -1);
+
+        // Appliquer les changements
         editor.apply();
 
-        // Redirige vers l'activité de connexion
+        // Rediriger vers l'activité de connexion
         Intent intent = new Intent(MainActivity.this, LoginActivity.class);
         startActivity(intent);
-        finish(); // Ferme l'activité actuelle
+        finish(); // Ferme l'activité actuelle pour que l'utilisateur ne puisse pas revenir en arrière
         Toast.makeText(this, "Déconnecté avec succès", Toast.LENGTH_SHORT).show();
     }
+
     private void initializeArticles() {
         SQLiteDatabase db = dbHelper.getReadableDatabase();
         Cursor cursor = db.query(DatabaseHelper.TABLE_ARTICLE, null, null, null, null, null, null);

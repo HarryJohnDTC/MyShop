@@ -2,6 +2,7 @@ package com.harena.myshopsqlite;
 
 import android.content.ContentValues;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
@@ -178,9 +179,13 @@ public class CartActivity extends AppCompatActivity {
 
     // Dummy method to simulate getting the current user's ID
     private long getCurrentUserId() {
-        // Return the logged-in user ID (you'll need to replace this with actual login logic)
-        return 1;
+        // Récupère l'ID utilisateur à partir de SharedPreferences
+        SharedPreferences prefs = getSharedPreferences("MyPrefs", MODE_PRIVATE);
+
+        // Retourne l'ID utilisateur stocké, ou -1 si aucun utilisateur n'est connecté
+        return prefs.getLong("user_id", -1);
     }
+
 
 
     /*private void sendOrderConfirmationEmail(String orderDetails) {
